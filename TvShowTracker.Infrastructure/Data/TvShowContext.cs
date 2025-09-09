@@ -1,9 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TvShowTracker.Core.Entities;
 
 namespace TvShowTracker.Infrastructure.Data
@@ -20,16 +15,8 @@ namespace TvShowTracker.Infrastructure.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configurações de relacionamentos
-            modelBuilder.Entity<UserFavorite>()
-                .HasKey(uf => new { uf.UserId, uf.TvShowId });
-
-            modelBuilder.Entity<TvShow>()
-                .Property(e => e.Genres)
-                .HasConversion(
-                    v => string.Join(',', v),
-                    v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
-                );
+            
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(TvShowContext).Assembly);
         }
     }
 }
