@@ -1,0 +1,35 @@
+﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using TvShowTracker.Core.Entities;
+
+namespace TvShowTracker.Infrastructure.Data
+{
+    public class TvShowContext : DbContext
+    {
+        public TvShowContext(DbContextOptions<TvShowContext> options) : base(options) { }
+
+        public DbSet<TvShow> TvShows { get; set; }
+        public DbSet<Episode> Episodes { get; set; }
+        public DbSet<Actor> Actors { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<UserFavorite> UserFavorites { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // Configurações de relacionamentos
+            modelBuilder.Entity<UserFavorite>()
+                .HasKey(uf => new { uf.UserId, uf.TvShowId });
+
+            modelBuilder.Entity<TvShow>()
+                .Property(e => e.Genres)
+                .HasConversion(
+                    v => string.Join(',', v),
+                    v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
+                );
+        }
+    }
+}
