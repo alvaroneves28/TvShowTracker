@@ -1,10 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using TvShowTracker.Infrastructure.ExternalServices.Models;
 
 namespace TvShowTracker.Infrastructure.ExternalServices
@@ -29,31 +24,78 @@ namespace TvShowTracker.Infrastructure.ExternalServices
             try
             {
                 var url = $"{BaseUrl}/most-popular?page={page}";
-                _logger.LogInformation("Buscando séries populares da página {Page}", page);
+                _logger.LogInformation("=== TESTE EPISODATE DEBUG ===");
+                _logger.LogInformation("URL: {Url}", url);
+                _logger.LogInformation("User-Agent: {UserAgent}", _httpClient.DefaultRequestHeaders.UserAgent.ToString());
+                _logger.LogInformation("Timeout: {Timeout}", _httpClient.Timeout);
 
-                var response = await _httpClient.GetAsync(url);
+                // Tentar com headers adicionais
+                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Add("Accept", "application/json");
+                request.Headers.Add("Accept-Language", "en-US,en;q=0.9");
+                request.Headers.Add("Cache-Control", "no-cache");
+
+                _logger.LogInformation("Enviando request...");
+
+                var response = await _httpClient.SendAsync(request);
+
+                _logger.LogInformation("Status Code: {StatusCode}", response.StatusCode);
+                _logger.LogInformation("Content Type: {ContentType}", response.Content.Headers.ContentType);
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("Erro ao buscar séries: {StatusCode}", response.StatusCode);
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Erro HTTP {StatusCode}: {Content}", response.StatusCode, errorContent);
                     return null;
                 }
 
                 var jsonContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("Response Length: {Length} chars", jsonContent.Length);
+                _logger.LogInformation("Response Preview: {Preview}",
+                    jsonContent.Length > 200 ? jsonContent.Substring(0, 200) + "..." : jsonContent);
+
+                if (string.IsNullOrEmpty(jsonContent))
+                {
+                    _logger.LogError("Response content é vazio");
+                    return null;
+                }
+
                 var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 };
 
                 var result = JsonSerializer.Deserialize<EpisodateResponse>(jsonContent, options);
-                _logger.LogInformation("Encontradas {Count} séries na página {Page}",
-                    result?.TvShows?.Count ?? 0, page);
+
+                _logger.LogInformation("Deserialization concluída. Total shows: {Count}",
+                    result?.TvShows?.Count ?? 0);
+
+                if (result?.TvShows?.Any() == true)
+                {
+                    _logger.LogInformation("Primeira série: {ShowName} - {Network}",
+                        result.TvShows.First().Name, result.TvShows.First().Network);
+                }
 
                 return result;
             }
+            catch (HttpRequestException httpEx)
+            {
+                _logger.LogError(httpEx, "Erro de HTTP request para {Page}: {Message}", page, httpEx.Message);
+                return null;
+            }
+            catch (TaskCanceledException timeoutEx)
+            {
+                _logger.LogError(timeoutEx, "Timeout ao buscar séries da página {Page}", page);
+                return null;
+            }
+            catch (JsonException jsonEx)
+            {
+                _logger.LogError(jsonEx, "Erro ao deserializar JSON da página {Page}: {Message}", page, jsonEx.Message);
+                return null;
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao buscar séries populares da página {Page}", page);
+                _logger.LogError(ex, "Erro geral ao buscar séries da página {Page}: {Message}", page, ex.Message);
                 return null;
             }
         }

@@ -8,7 +8,7 @@ namespace TvShowTracker.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // Apenas usuários autenticados podem acessar
+    [Authorize] 
     [Produces("application/json")]
     public class SyncController : ControllerBase
     {
@@ -157,5 +157,6 @@ namespace TvShowTracker.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
     }
 }

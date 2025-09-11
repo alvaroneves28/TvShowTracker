@@ -5,7 +5,7 @@ namespace TvShowTracker.Infrastructure.ExternalServices.Models
     public class EpisodateResponse
     {
         [JsonPropertyName("total")]
-        public string Total { get; set; } = string.Empty;
+        public int Total { get; set; }
 
         [JsonPropertyName("page")]
         public int Page { get; set; }
