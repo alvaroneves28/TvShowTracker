@@ -1,16 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TvShowTracker.Core.Entities;
 
 namespace TvShowTracker.Infrastructure.Data.Configurations
 {
+    /// <summary>
+    /// Entity Framework Core configuration for the <see cref="User"/> entity.
+    /// Defines primary key, properties, indexes, relationships, and table mapping.
+    /// </summary>
     public class UserConfiguration : IEntityTypeConfiguration<User>
     {
+        /// <summary>
+        /// Configures the <see cref="User"/> entity.
+        /// </summary>
+        /// <param name="builder">Entity type builder for <see cref="User"/>.</param>
         public void Configure(EntityTypeBuilder<User> builder)
         {
             // Primary Key
@@ -31,9 +34,9 @@ namespace TvShowTracker.Infrastructure.Data.Configurations
 
             builder.Property(x => x.CreatedAt)
                 .IsRequired()
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("GETUTCDATE()"); // Default to current UTC time
 
-            // Indexes para performance
+            // Indexes for performance and uniqueness
             builder.HasIndex(x => x.Username)
                 .IsUnique()
                 .HasDatabaseName("IX_User_Username");
@@ -48,7 +51,7 @@ namespace TvShowTracker.Infrastructure.Data.Configurations
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Table name
+            // Table name mapping
             builder.ToTable("Users");
         }
     }

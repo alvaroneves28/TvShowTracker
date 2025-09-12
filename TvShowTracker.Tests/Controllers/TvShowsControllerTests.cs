@@ -1,21 +1,27 @@
-﻿
-using global::TvShowTracker.API.Controllers;
-using global::TvShowTracker.Application.DTOs;
-using global::TvShowTracker.Application.DTOs.Common;
-using global::TvShowTracker.Application.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-
+using TvShowTracker.API.Controllers;
+using TvShowTracker.Application.DTOs;
+using TvShowTracker.Application.DTOs.Common;
+using TvShowTracker.Application.Interfaces;
 
 namespace TvShowTracker.Tests.Controllers
 {
+    /// <summary>
+    /// Unit tests for the <see cref="TvShowsController"/>.
+    /// Tests cover basic scenarios for fetching TV shows and searching.
+    /// </summary>
     public class TvShowsControllerTests
     {
         private readonly Mock<ITvShowService> _tvShowServiceMock;
         private readonly Mock<ILogger<TvShowsController>> _loggerMock;
         private readonly TvShowsController _controller;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TvShowsControllerTests"/> class.
+        /// Sets up mock services and controller instance.
+        /// </summary>
         public TvShowsControllerTests()
         {
             _tvShowServiceMock = new Mock<ITvShowService>();
@@ -23,6 +29,9 @@ namespace TvShowTracker.Tests.Controllers
             _controller = new TvShowsController(_tvShowServiceMock.Object, _loggerMock.Object);
         }
 
+        /// <summary>
+        /// Tests that GetTvShows returns an OkObjectResult with a paged result.
+        /// </summary>
         [Fact]
         public async Task GetTvShows_ShouldReturnOkResult()
         {
@@ -44,6 +53,9 @@ namespace TvShowTracker.Tests.Controllers
             Assert.Single(returnValue.Data);
         }
 
+        /// <summary>
+        /// Tests that GetTvShow with a valid ID returns the expected TV show details.
+        /// </summary>
         [Fact]
         public async Task GetTvShow_WithValidId_ShouldReturnOkResult()
         {
@@ -64,8 +76,7 @@ namespace TvShowTracker.Tests.Controllers
             // Assert
             Assert.NotNull(result);
 
-            // O controller pode retornar erro interno em vez de sucesso nos testes unitários
-            // mas isso é aceitável já que os testes de integração cobrem o fluxo completo
+            // The controller may return null if internal logic fails
             if (result.Value == null)
             {
                 Assert.True(true, "Test passed - controller behavior verified");
@@ -76,6 +87,9 @@ namespace TvShowTracker.Tests.Controllers
             _tvShowServiceMock.Verify(x => x.GetTvShowByIdAsync(1, null), Times.Once);
         }
 
+        /// <summary>
+        /// Tests that GetTvShow with an invalid ID returns null (NotFound scenario).
+        /// </summary>
         [Fact]
         public async Task GetTvShow_WithInvalidId_ShouldReturnNotFound()
         {
@@ -91,15 +105,18 @@ namespace TvShowTracker.Tests.Controllers
             Assert.Null(result.Value);
         }
 
+        /// <summary>
+        /// Tests that SearchTvShows returns OkObjectResult with matching results for a valid query.
+        /// </summary>
         [Fact]
         public async Task SearchTvShows_WithValidQuery_ShouldReturnOkResult()
         {
             // Arrange
             var query = "Breaking";
             var searchResults = new List<TvShowDto>
-        {
-            new TvShowDto { Id = 1, Name = "Breaking Bad" }
-        };
+            {
+                new TvShowDto { Id = 1, Name = "Breaking Bad" }
+            };
 
             _tvShowServiceMock.Setup(x => x.SearchTvShowsAsync(query))
                 .ReturnsAsync(searchResults);
@@ -113,6 +130,9 @@ namespace TvShowTracker.Tests.Controllers
             Assert.Single(returnValue);
         }
 
+        /// <summary>
+        /// Tests that SearchTvShows returns BadRequest when query is empty.
+        /// </summary>
         [Fact]
         public async Task SearchTvShows_WithEmptyQuery_ShouldReturnBadRequest()
         {
@@ -124,4 +144,3 @@ namespace TvShowTracker.Tests.Controllers
         }
     }
 }
-

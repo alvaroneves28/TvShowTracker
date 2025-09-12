@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -8,31 +6,37 @@ using TvShowTracker.API;
 using TvShowTracker.Application.DTOs;
 using TvShowTracker.Application.DTOs.Common;
 using TvShowTracker.Core.Entities;
-using TvShowTracker.Infrastructure.Data;
 
 namespace TvShowTracker.Tests.Integration.Controllers
 {
+    /// <summary>
+    /// Integration tests for <c>TvShowsController</c>, verifying TV show CRUD and search operations.
+    /// </summary>
     public class TvShowsControllerIntegrationTests : IClassFixture<TestWebApplicationFactory<Program>>
     {
         private readonly TestWebApplicationFactory<Program> _factory;
         private readonly HttpClient _client;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TvShowsControllerIntegrationTests"/> class.
+        /// </summary>
         public TvShowsControllerIntegrationTests(TestWebApplicationFactory<Program> factory)
         {
             _factory = factory;
             _client = _factory.CreateClient();
         }
 
+        /// <summary>
+        /// Tests retrieving paginated TV shows.
+        /// Expects HTTP 200 OK and non-empty paginated data.
+        /// </summary>
         [Fact]
         public async Task GetTvShows_ShouldReturnOkWithPaginatedData()
         {
-            // Arrange
             await SeedTestDataAsync();
 
-            // Act
             var response = await _client.GetAsync("/api/tvshows?page=1&pageSize=10");
 
-            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var content = await response.Content.ReadAsStringAsync();
@@ -43,16 +47,17 @@ namespace TvShowTracker.Tests.Integration.Controllers
             Assert.True(result.Data.Any());
         }
 
+        /// <summary>
+        /// Tests retrieving a TV show by valid ID.
+        /// Expects HTTP 200 OK and the correct show data.
+        /// </summary>
         [Fact]
         public async Task GetTvShow_WithValidId_ShouldReturnTvShow()
         {
-            // Arrange
             await SeedTestDataAsync();
 
-            // Act
             var response = await _client.GetAsync("/api/tvshows/1");
 
-            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var content = await response.Content.ReadAsStringAsync();
@@ -63,20 +68,25 @@ namespace TvShowTracker.Tests.Integration.Controllers
             Assert.Equal("Test Show 1", tvShow.Name);
         }
 
+        /// <summary>
+        /// Tests retrieving a TV show by an invalid ID.
+        /// Expects HTTP 404 Not Found.
+        /// </summary>
         [Fact]
         public async Task GetTvShow_WithInvalidId_ShouldReturnNotFound()
         {
-            // Act
             var response = await _client.GetAsync("/api/tvshows/999");
 
-            // Assert
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
+        /// <summary>
+        /// Tests creating a new TV show with authentication.
+        /// Expects HTTP 201 Created and correct show data.
+        /// </summary>
         [Fact]
         public async Task CreateTvShow_WithAuthentication_ShouldCreateTvShow()
         {
-            // Arrange
             var token = await GetAuthTokenAsync();
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -95,10 +105,8 @@ namespace TvShowTracker.Tests.Integration.Controllers
             var json = JsonSerializer.Serialize(createDto);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            // Act
             var response = await _client.PostAsync("/api/tvshows", content);
 
-            // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             var responseContent = await response.Content.ReadAsStringAsync();
@@ -109,10 +117,13 @@ namespace TvShowTracker.Tests.Integration.Controllers
             Assert.Equal("New Test Show", createdShow.Name);
         }
 
+        /// <summary>
+        /// Tests creating a new TV show without authentication.
+        /// Expects HTTP 401 Unauthorized.
+        /// </summary>
         [Fact]
         public async Task CreateTvShow_WithoutAuthentication_ShouldReturnUnauthorized()
         {
-            // Arrange
             var createDto = new CreateTvShowDto
             {
                 Name = "New Test Show",
@@ -128,23 +139,22 @@ namespace TvShowTracker.Tests.Integration.Controllers
             var json = JsonSerializer.Serialize(createDto);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            // Act
             var response = await _client.PostAsync("/api/tvshows", content);
 
-            // Assert
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
+        /// <summary>
+        /// Tests searching for TV shows by query.
+        /// Expects HTTP 200 OK and matching shows containing the search term.
+        /// </summary>
         [Fact]
         public async Task SearchTvShows_ShouldReturnMatchingShows()
         {
-            // Arrange
             await SeedTestDataAsync();
 
-            // Act
             var response = await _client.GetAsync("/api/tvshows/search?query=Test");
 
-            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var content = await response.Content.ReadAsStringAsync();
@@ -156,57 +166,62 @@ namespace TvShowTracker.Tests.Integration.Controllers
             Assert.All(shows, show => Assert.Contains("Test", show.Name));
         }
 
+        /// <summary>
+        /// Seeds test TV shows into the in-memory database.
+        /// </summary>
         private async Task SeedTestDataAsync()
         {
-            using var context = _factory.GetDbContext(); // Mudança aqui - remover await
+            using var context = _factory.GetDbContext();
 
-            // Limpar dados existentes
             context.TvShows.RemoveRange(context.TvShows);
             context.SaveChanges();
 
             var tvShows = new List<TvShow>
-    {
-        new TvShow
-        {
-            Id = 1,
-            Name = "Test Show 1",
-            Description = "Test description 1",
-            StartDate = DateTime.Now.AddYears(-2),
-            Status = "Ended",
-            Network = "Netflix",
-            ImageUrl = "https://example.com/image1.jpg",
-            Rating = 8.5,
-            Genres = new List<string> { "Drama" },
-            ShowType = "Series",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        },
-        new TvShow
-        {
-            Id = 2,
-            Name = "Test Show 2",
-            Description = "Test description 2",
-            StartDate = DateTime.Now.AddYears(-1),
-            Status = "Running",
-            Network = "HBO",
-            ImageUrl = "https://example.com/image2.jpg",
-            Rating = 9.0,
-            Genres = new List<string> { "Comedy" },
-            ShowType = "Series",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        }
-    };
+            {
+                new TvShow
+                {
+                    Id = 1,
+                    Name = "Test Show 1",
+                    Description = "Test description 1",
+                    StartDate = DateTime.Now.AddYears(-2),
+                    Status = "Ended",
+                    Network = "Netflix",
+                    ImageUrl = "https://example.com/image1.jpg",
+                    Rating = 8.5,
+                    Genres = new List<string> { "Drama" },
+                    ShowType = "Series",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new TvShow
+                {
+                    Id = 2,
+                    Name = "Test Show 2",
+                    Description = "Test description 2",
+                    StartDate = DateTime.Now.AddYears(-1),
+                    Status = "Running",
+                    Network = "HBO",
+                    ImageUrl = "https://example.com/image2.jpg",
+                    Rating = 9.0,
+                    Genres = new List<string> { "Comedy" },
+                    ShowType = "Series",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                }
+            };
 
             context.TvShows.AddRange(tvShows);
             context.SaveChanges();
         }
 
+        /// <summary>
+        /// Registers a new test user and returns a JWT token for authentication.
+        /// </summary>
         private async Task<string> GetAuthTokenAsync()
         {
             var registerDto = new RegisterDto
             {
-                Username = $"testuser{Random.Shared.Next(1000, 9999)}", // Usar números em vez de GUID
+                Username = $"testuser{Random.Shared.Next(1000, 9999)}",
                 Email = $"test{Random.Shared.Next(1000, 9999)}@example.com",
                 Password = "Password123!",
                 ConfirmPassword = "Password123!"
@@ -219,9 +234,7 @@ namespace TvShowTracker.Tests.Integration.Controllers
             var responseContent = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
-            {
                 throw new Exception($"Auth failed: {response.StatusCode} - {responseContent}");
-            }
 
             var authResponse = JsonSerializer.Deserialize<AuthResponseDto>(responseContent,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });

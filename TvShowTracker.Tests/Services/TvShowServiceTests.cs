@@ -8,23 +8,31 @@ using AutoMapper;
 
 namespace TvShowTracker.Tests.Services
 {
+    /// <summary>
+    /// Unit tests for <see cref="TvShowService"/>.
+    /// </summary>
     public class TvShowServiceTests
     {
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly TvShowService _tvShowService;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="TvShowServiceTests"/> and configures mocks.
+        /// </summary>
         public TvShowServiceTests()
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _mapperMock = new Mock<IMapper>();
 
-            // Configurar os mocks do mapper
             SetupMapperMocks();
 
             _tvShowService = new TvShowService(_unitOfWorkMock.Object, _mapperMock.Object);
         }
 
+        /// <summary>
+        /// Configures the AutoMapper mock for all required mappings.
+        /// </summary>
         private void SetupMapperMocks()
         {
             // TvShow -> TvShowDto
@@ -112,6 +120,9 @@ namespace TvShowTracker.Tests.Services
                 });
         }
 
+        /// <summary>
+        /// Verifies that GetAllTvShowsAsync returns a paged result with data.
+        /// </summary>
         [Fact]
         public async Task GetAllTvShowsAsync_ShouldReturnPagedResult()
         {
@@ -149,6 +160,9 @@ namespace TvShowTracker.Tests.Services
             Assert.Equal("Breaking Bad", result.Data.First().Name);
         }
 
+        /// <summary>
+        /// Verifies that GetTvShowByIdAsync returns a TvShowDetailDto for a valid ID.
+        /// </summary>
         [Fact]
         public async Task GetTvShowByIdAsync_WithValidId_ShouldReturnTvShowDetail()
         {
@@ -181,6 +195,9 @@ namespace TvShowTracker.Tests.Services
             Assert.Equal("Breaking Bad", result.Name);
         }
 
+        /// <summary>
+        /// Verifies that CreateTvShowAsync correctly creates and returns a new TV show.
+        /// </summary>
         [Fact]
         public async Task CreateTvShowAsync_ShouldCreateAndReturnTvShow()
         {

@@ -8,49 +8,60 @@ using TvShowTracker.Core.Entities;
 
 namespace TvShowTracker.Tests.Integration.Controllers
 {
+    /// <summary>
+    /// Integration tests for <c>FavoritesController</c>, verifying favorite management functionality.
+    /// </summary>
     public class FavoritesControllerIntegrationTests : IClassFixture<TestWebApplicationFactory<Program>>
     {
         private readonly TestWebApplicationFactory<Program> _factory;
         private readonly HttpClient _client;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FavoritesControllerIntegrationTests"/> class.
+        /// </summary>
         public FavoritesControllerIntegrationTests(TestWebApplicationFactory<Program> factory)
         {
             _factory = factory;
             _client = _factory.CreateClient();
         }
 
+        /// <summary>
+        /// Tests adding a favorite TV show with proper authentication.
+        /// Expects HTTP 200 OK.
+        /// </summary>
         [Fact]
         public async Task AddFavorite_WithAuthentication_ShouldReturnOk()
         {
-            // Arrange
             await SeedTestDataAsync();
             var token = await GetAuthTokenAsync();
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            // Act
             var response = await _client.PostAsync("/api/favorites/1", null);
 
-            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
+        /// <summary>
+        /// Tests adding a favorite TV show without authentication.
+        /// Expects HTTP 401 Unauthorized.
+        /// </summary>
         [Fact]
         public async Task AddFavorite_WithoutAuthentication_ShouldReturnUnauthorized()
         {
-            // Arrange
             await SeedTestDataAsync();
 
-            // Act
             var response = await _client.PostAsync("/api/favorites/1", null);
 
-            // Assert
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
+        /// <summary>
+        /// Tests retrieving user favorites with authentication.
+        /// Expects HTTP 200 OK and a non-null favorites list.
+        /// </summary>
         [Fact]
         public async Task GetUserFavorites_WithAuthentication_ShouldReturnFavorites()
         {
-            // Arrange
             await SeedTestDataAsync();
             var token = await GetAuthTokenAsync();
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -58,10 +69,8 @@ namespace TvShowTracker.Tests.Integration.Controllers
             // Adicionar um favorito primeiro
             await _client.PostAsync("/api/favorites/1", null);
 
-            // Act
             var response = await _client.GetAsync("/api/favorites");
 
-            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var content = await response.Content.ReadAsStringAsync();
@@ -71,10 +80,13 @@ namespace TvShowTracker.Tests.Integration.Controllers
             Assert.NotNull(favorites);
         }
 
+        /// <summary>
+        /// Tests removing a favorite TV show with authentication.
+        /// Expects HTTP 200 OK.
+        /// </summary>
         [Fact]
         public async Task RemoveFavorite_WithAuthentication_ShouldReturnOk()
         {
-            // Arrange
             await SeedTestDataAsync();
             var token = await GetAuthTokenAsync();
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -82,35 +94,38 @@ namespace TvShowTracker.Tests.Integration.Controllers
             // Adicionar favorito primeiro
             await _client.PostAsync("/api/favorites/1", null);
 
-            // Act
             var response = await _client.DeleteAsync("/api/favorites/1");
 
-            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
+        /// <summary>
+        /// Tests toggling a favorite TV show (add then remove).
+        /// Expects HTTP 200 OK on both operations.
+        /// </summary>
         [Fact]
         public async Task ToggleFavorite_ShouldToggleCorrectly()
         {
-            // Arrange
             await SeedTestDataAsync();
             var token = await GetAuthTokenAsync();
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            // Act - Primeiro toggle (adicionar)
+            // Primeiro toggle (adicionar)
             var response1 = await _client.PostAsync("/api/favorites/toggle/1", null);
 
-            // Act - Segundo toggle (remover)
+            // Segundo toggle (remover)
             var response2 = await _client.PostAsync("/api/favorites/toggle/1", null);
 
-            // Assert
             Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
             Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
         }
 
+        /// <summary>
+        /// Seeds test TV show data into the in-memory database.
+        /// </summary>
         private async Task SeedTestDataAsync()
         {
-            using var context = _factory.GetDbContext(); // Mudança aqui
+            using var context = _factory.GetDbContext();
 
             // Limpar dados existentes
             context.TvShows.RemoveRange(context.TvShows);
@@ -136,11 +151,14 @@ namespace TvShowTracker.Tests.Integration.Controllers
             context.SaveChanges();
         }
 
+        /// <summary>
+        /// Registers a new test user and returns a JWT token for authentication.
+        /// </summary>
         private async Task<string> GetAuthTokenAsync()
         {
             var registerDto = new RegisterDto
             {
-                Username = $"testuser{Random.Shared.Next(1000, 9999)}", // Usar números em vez de GUID
+                Username = $"testuser{Random.Shared.Next(1000, 9999)}",
                 Email = $"test{Random.Shared.Next(1000, 9999)}@example.com",
                 Password = "Password123!",
                 ConfirmPassword = "Password123!"

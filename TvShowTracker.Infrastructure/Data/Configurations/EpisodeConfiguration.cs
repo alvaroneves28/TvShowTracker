@@ -1,10 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TvShowTracker.Core.Entities;
 
 namespace TvShowTracker.Infrastructure.Data.Configurations
@@ -58,13 +53,13 @@ namespace TvShowTracker.Infrastructure.Data.Configurations
                 .HasForeignKey(x => x.TvShowId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Table name
-            builder.ToTable("Episodes");
-
-            // Check constraints para validação a nível de BD
-            builder.HasCheckConstraint("CK_Episode_Season", "[Season] > 0");
-            builder.HasCheckConstraint("CK_Episode_EpisodeNumber", "[EpisodeNumber] > 0");
-            builder.HasCheckConstraint("CK_Episode_Rating", "[Rating] >= 0 AND [Rating] <= 10");
+            // Table name mapping with check constraints
+            builder.ToTable("Episodes", t =>
+            {
+                t.HasCheckConstraint("CK_Episode_Season", "[Season] > 0");
+                t.HasCheckConstraint("CK_Episode_EpisodeNumber", "[EpisodeNumber] > 0");
+                t.HasCheckConstraint("CK_Episode_Rating", "[Rating] >= 0 AND [Rating] <= 10");
+            });
         }
     }
 }

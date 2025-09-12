@@ -1,18 +1,24 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TvShowTracker.Core.Entities;
 using TvShowTracker.Infrastructure.Data;
 
 namespace TvShowTracker.Tests.Fixtures
 {
+    /// <summary>
+    /// Provides an in-memory database fixture for unit tests.
+    /// Seeds test data for TV shows, episodes, actors, and users.
+    /// </summary>
     public class DatabaseFixture : IDisposable
     {
+        /// <summary>
+        /// Gets the in-memory <see cref="TvShowContext"/> instance.
+        /// </summary>
         public TvShowContext Context { get; private set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DatabaseFixture"/> class.
+        /// Configures the in-memory database and seeds test data.
+        /// </summary>
         public DatabaseFixture()
         {
             var options = new DbContextOptionsBuilder<TvShowContext>()
@@ -24,6 +30,10 @@ namespace TvShowTracker.Tests.Fixtures
             SeedTestData();
         }
 
+        /// <summary>
+        /// Seeds initial test data into the in-memory database.
+        /// Includes TV shows, episodes, actors, and users.
+        /// </summary>
         private void SeedTestData()
         {
             var tvShows = new List<TvShow>
@@ -123,6 +133,9 @@ namespace TvShowTracker.Tests.Fixtures
             Context.SaveChanges();
         }
 
+        /// <summary>
+        /// Disposes the in-memory database context.
+        /// </summary>
         public void Dispose()
         {
             Context.Dispose();

@@ -8,6 +8,9 @@ using AutoMapper;
 
 namespace TvShowTracker.Tests.Services
 {
+    /// <summary>
+    /// Unit tests for <see cref="UserService"/>.
+    /// </summary>
     public class UserServiceTests
     {
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
@@ -15,6 +18,9 @@ namespace TvShowTracker.Tests.Services
         private readonly Mock<IMapper> _mapperMock;
         private readonly UserService _userService;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="UserServiceTests"/> and configures mocks.
+        /// </summary>
         public UserServiceTests()
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -26,6 +32,9 @@ namespace TvShowTracker.Tests.Services
             _userService = new UserService(_unitOfWorkMock.Object, _mapperMock.Object, _authServiceMock.Object);
         }
 
+        /// <summary>
+        /// Configures AutoMapper mock for mapping User -> UserDto.
+        /// </summary>
         private void SetupMapperMocks()
         {
             _mapperMock.Setup(m => m.Map<UserDto>(It.IsAny<User>()))
@@ -39,6 +48,9 @@ namespace TvShowTracker.Tests.Services
                 });
         }
 
+        /// <summary>
+        /// Verifies that RegisterAsync correctly creates a user and returns a JWT token.
+        /// </summary>
         [Fact]
         public async Task RegisterAsync_WithValidData_ShouldCreateUser()
         {
@@ -85,6 +97,9 @@ namespace TvShowTracker.Tests.Services
             Assert.Equal(registerDto.Email, result.User.Email);
         }
 
+        /// <summary>
+        /// Verifies that LoginAsync returns an authentication response when valid credentials are provided.
+        /// </summary>
         [Fact]
         public async Task LoginAsync_WithValidCredentials_ShouldReturnAuthResponse()
         {

@@ -2,26 +2,46 @@
 
 namespace TvShowTracker.Application.DTOs
 {
+    /// <summary>
+    /// Data transfer object for user registration requests.
+    /// Contains all necessary information to create a new user account with comprehensive validation rules.
+    /// </summary>
     public class RegisterDto
     {
-        [Required(ErrorMessage = "Username é obrigatório")]
-        [StringLength(50, MinimumLength = 3, ErrorMessage = "Username deve ter entre 3 e 50 caracteres")]
-        [RegularExpression(@"^[a-zA-Z0-9_]+$", ErrorMessage = "Username só pode conter letras, números e underscore")]
+        /// <summary>
+        /// Unique username for the new account.
+        /// Serves as the primary identifier for login and user references throughout the system.
+        /// </summary>
+        [Required(ErrorMessage = "Username is required")]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "Username must be between 3 and 50 characters")]
+        [RegularExpression(@"^[a-zA-Z0-9_]+$", ErrorMessage = "Username can only contain letters, numbers, and underscores")]
         public string Username { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email é obrigatório")]
-        [EmailAddress(ErrorMessage = "Formato de email inválido")]
-        [StringLength(256, ErrorMessage = "Email não pode exceder 256 caracteres")]
+        /// <summary>
+        /// Email address for account verification, communication, and account recovery.
+        /// Must be a valid, accessible email address that the user owns.
+        /// </summary>
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [StringLength(256, ErrorMessage = "Email cannot exceed 256 characters")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Password é obrigatória")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password deve ter pelo menos 6 caracteres")]
+        /// <summary>
+        /// Secure password for account protection.
+        /// Must meet complexity requirements to ensure account security against common attacks.
+        /// </summary>
+        [Required(ErrorMessage = "Password is required")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters")]
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$",
-            ErrorMessage = "Password deve conter pelo menos: 1 letra minúscula, 1 maiúscula, 1 número e 1 caractere especial")]
+            ErrorMessage = "Password must contain at least: 1 lowercase letter, 1 uppercase letter, 1 number, and 1 special character")]
         public string Password { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Confirmação de password é obrigatória")]
-        [Compare("Password", ErrorMessage = "Password e confirmação não coincidem")]
+        /// <summary>
+        /// Password confirmation field to prevent user input errors during registration.
+        /// Must exactly match the Password field to ensure user intention and prevent typos.
+        /// </summary>
+        [Required(ErrorMessage = "Password confirmation is required")]
+        [Compare("Password", ErrorMessage = "Password and confirmation do not match")]
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 }

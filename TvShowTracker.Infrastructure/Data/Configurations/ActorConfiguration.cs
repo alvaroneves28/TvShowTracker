@@ -1,16 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TvShowTracker.Core.Entities;
 
 namespace TvShowTracker.Infrastructure.Data.Configurations
 {
+    /// <summary>
+    /// Entity Framework Core configuration for the <see cref="Actor"/> entity.
+    /// Defines primary key, properties, indexes, and relationships.
+    /// </summary>
     public class ActorConfiguration : IEntityTypeConfiguration<Actor>
     {
+        /// <summary>
+        /// Configures the <see cref="Actor"/> entity.
+        /// </summary>
+        /// <param name="builder">Entity type builder for <see cref="Actor"/>.</param>
         public void Configure(EntityTypeBuilder<Actor> builder)
         {
             // Primary Key
@@ -27,25 +30,28 @@ namespace TvShowTracker.Infrastructure.Data.Configurations
             builder.Property(x => x.ImageUrl)
                 .HasMaxLength(500);
 
-            // Index para busca por nome
+            // Index for faster search by Name
             builder.HasIndex(x => x.Name)
                 .HasDatabaseName("IX_Actor_Name");
 
-            // Many-to-Many relationship com TvShow
+            // Many-to-Many relationship with TvShow
             builder.HasMany(x => x.TvShows)
                 .WithMany(x => x.Actors)
                 .UsingEntity<Dictionary<string, object>>(
-                    "TvShowActors", // Nome da tabela de junção
+                    "TvShowActors", // Join table name
                     j => j.HasOne<TvShow>().WithMany().HasForeignKey("TvShowId"),
                     j => j.HasOne<Actor>().WithMany().HasForeignKey("ActorId"),
                     j =>
                     {
+                        // Composite Primary Key for join table
                         j.HasKey("ActorId", "TvShowId");
+
+                        // Indexes for join table
                         j.HasIndex("TvShowId").HasDatabaseName("IX_TvShowActors_TvShowId");
                         j.HasIndex("ActorId").HasDatabaseName("IX_TvShowActors_ActorId");
                     });
 
-            // Table name
+            // Table name mapping
             builder.ToTable("Actors");
         }
     }

@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TvShowTracker.Application.DTOs;
+﻿using TvShowTracker.Application.DTOs;
 using TvShowTracker.Core.Entities;
 
 namespace TvShowTracker.Tests.Helpers
 {
+    /// <summary>
+    /// Provides helper methods to create test data for unit and integration tests.
+    /// </summary>
     public static class TestDataBuilder
     {
+        /// <summary>
+        /// Creates a <see cref="TvShow"/> instance with default or specified values.
+        /// </summary>
         public static TvShow CreateTvShow(
             int id = 1,
             string name = "Test Show",
@@ -35,6 +36,9 @@ namespace TvShowTracker.Tests.Helpers
             };
         }
 
+        /// <summary>
+        /// Creates an <see cref="Episode"/> instance with default or specified values.
+        /// </summary>
         public static Episode CreateEpisode(
             int id = 1,
             int tvShowId = 1,
@@ -55,6 +59,9 @@ namespace TvShowTracker.Tests.Helpers
             };
         }
 
+        /// <summary>
+        /// Creates an <see cref="Actor"/> instance with default or specified values.
+        /// </summary>
         public static Actor CreateActor(
             int id = 1,
             string name = "Test Actor",
@@ -70,6 +77,9 @@ namespace TvShowTracker.Tests.Helpers
             };
         }
 
+        /// <summary>
+        /// Creates a <see cref="User"/> instance with default or specified values.
+        /// </summary>
         public static User CreateUser(
             int id = 1,
             string username = "testuser",
@@ -86,6 +96,9 @@ namespace TvShowTracker.Tests.Helpers
             };
         }
 
+        /// <summary>
+        /// Creates a <see cref="CreateTvShowDto"/> instance with default or specified values.
+        /// </summary>
         public static CreateTvShowDto CreateTvShowDto(
             string name = "New Test Show",
             string status = "Running")
@@ -104,6 +117,9 @@ namespace TvShowTracker.Tests.Helpers
             };
         }
 
+        /// <summary>
+        /// Creates a <see cref="RegisterDto"/> instance with default or specified values.
+        /// </summary>
         public static RegisterDto CreateRegisterDto(
             string username = "newuser",
             string email = "newuser@example.com",
@@ -118,6 +134,9 @@ namespace TvShowTracker.Tests.Helpers
             };
         }
 
+        /// <summary>
+        /// Creates a <see cref="LoginDto"/> instance with default or specified values.
+        /// </summary>
         public static LoginDto CreateLoginDto(
             string username = "testuser",
             string password = "Password123!")

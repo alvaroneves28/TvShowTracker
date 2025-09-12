@@ -7,6 +7,9 @@ using AutoMapper;
 
 namespace TvShowTracker.Tests.Services
 {
+    /// <summary>
+    /// Unit tests for <see cref="FavoriteService"/>.
+    /// </summary>
     public class FavoriteServiceTests
     {
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
@@ -23,6 +26,9 @@ namespace TvShowTracker.Tests.Services
             _favoriteService = new FavoriteService(_unitOfWorkMock.Object, _mapperMock.Object);
         }
 
+        /// <summary>
+        /// Sets up AutoMapper mock to map TvShow entities to TvShowDto objects.
+        /// </summary>
         private void SetupMapperMocks()
         {
             _mapperMock.Setup(m => m.Map<IEnumerable<TvShowDto>>(It.IsAny<IEnumerable<TvShow>>()))
@@ -42,6 +48,9 @@ namespace TvShowTracker.Tests.Services
                 }));
         }
 
+        /// <summary>
+        /// Tests adding a favorite for a user when the TV show exists and is not already a favorite.
+        /// </summary>
         [Fact]
         public async Task AddFavoriteAsync_WithValidData_ShouldReturnTrue()
         {
@@ -65,6 +74,9 @@ namespace TvShowTracker.Tests.Services
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(), Times.Once);
         }
 
+        /// <summary>
+        /// Tests retrieving a user's favorite TV shows.
+        /// </summary>
         [Fact]
         public async Task GetUserFavoritesAsync_ShouldReturnFavoriteShows()
         {
