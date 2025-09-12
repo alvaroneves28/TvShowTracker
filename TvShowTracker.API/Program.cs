@@ -52,7 +52,21 @@ namespace TvShowTracker.API
                     Version = "v1",
                     Title = "TV Show Tracker API",
                     Description = "REST API for managing TV shows, user favorites, and viewing tracking",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "TV Show Tracker Team",
+                        Email = "support@tvshowtracker.com"
+                    }
                 });
+
+                // Include XML documentation comments in Swagger
+                // This enhances API documentation with detailed descriptions from code comments
+                var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    options.IncludeXmlComments(xmlPath);
+                }
 
                 // Configure JWT Bearer token authentication in Swagger UI
                 // This allows users to input their JWT token directly in the Swagger interface
@@ -81,15 +95,6 @@ namespace TvShowTracker.API
                         Array.Empty<string>() // No specific scopes required
                     }
                 });
-
-                // Include XML documentation comments in Swagger if available
-                // This enhances API documentation with detailed descriptions from code comments
-                var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                if (File.Exists(xmlPath))
-                {
-                    options.IncludeXmlComments(xmlPath);
-                }
             });
 
             #endregion
@@ -277,6 +282,10 @@ namespace TvShowTracker.API
 
                     // Set custom route prefix for Swagger UI
                     c.RoutePrefix = "swagger";
+
+                    // Additional UI customizations
+                    c.DocumentTitle = "TV Show Tracker API Documentation";
+                    c.DefaultModelsExpandDepth(-1); // Hide models section by default
                 });
             }
 
