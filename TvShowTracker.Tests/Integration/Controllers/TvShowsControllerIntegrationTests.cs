@@ -1,11 +1,10 @@
 ﻿using System.Net;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Text.Json;
 using TvShowTracker.API;
 using TvShowTracker.Application.DTOs;
 using TvShowTracker.Application.DTOs.Common;
 using TvShowTracker.Core.Entities;
+using TvShowTracker.Tests.Extensions;
 
 namespace TvShowTracker.Tests.Integration.Controllers
 {
@@ -35,6 +34,9 @@ namespace TvShowTracker.Tests.Integration.Controllers
         {
             await SeedTestDataAsync();
 
+            var token = await GetAuthTokenAsync();
+            _client.SetBearerToken(token);
+
             var response = await _client.GetAsync("/api/tvshows?page=1&pageSize=10");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -56,6 +58,9 @@ namespace TvShowTracker.Tests.Integration.Controllers
         {
             await SeedTestDataAsync();
 
+            var token = await GetAuthTokenAsync();
+            _client.SetBearerToken(token);
+
             var response = await _client.GetAsync("/api/tvshows/1");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -75,6 +80,9 @@ namespace TvShowTracker.Tests.Integration.Controllers
         [Fact]
         public async Task GetTvShow_WithInvalidId_ShouldReturnNotFound()
         {
+            var token = await GetAuthTokenAsync();
+            _client.SetBearerToken(token);
+
             var response = await _client.GetAsync("/api/tvshows/999");
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -88,7 +96,7 @@ namespace TvShowTracker.Tests.Integration.Controllers
         public async Task CreateTvShow_WithAuthentication_ShouldCreateTvShow()
         {
             var token = await GetAuthTokenAsync();
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            _client.SetBearerToken(token);
 
             var createDto = new CreateTvShowDto
             {
@@ -97,22 +105,17 @@ namespace TvShowTracker.Tests.Integration.Controllers
                 StartDate = DateTime.Now,
                 Status = "Running",
                 Network = "Netflix",
+                ImageUrl = "https://example.com/test-show.jpg",
                 Rating = 8.5,
                 Genres = new List<string> { "Drama" },
                 ShowType = "Series"
             };
 
-            var json = JsonSerializer.Serialize(createDto);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _client.PostAsync("/api/tvshows", content);
+            var response = await _client.PostAsJsonAsync("/api/tvshows", createDto);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var createdShow = JsonSerializer.Deserialize<TvShowDto>(responseContent,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
+            var createdShow = await response.Content.ReadAsJsonAsync<TvShowDto>();
             Assert.NotNull(createdShow);
             Assert.Equal("New Test Show", createdShow.Name);
         }
@@ -124,6 +127,7 @@ namespace TvShowTracker.Tests.Integration.Controllers
         [Fact]
         public async Task CreateTvShow_WithoutAuthentication_ShouldReturnUnauthorized()
         {
+
             var createDto = new CreateTvShowDto
             {
                 Name = "New Test Show",
@@ -136,10 +140,7 @@ namespace TvShowTracker.Tests.Integration.Controllers
                 ShowType = "Series"
             };
 
-            var json = JsonSerializer.Serialize(createDto);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _client.PostAsync("/api/tvshows", content);
+            var response = await _client.PostAsJsonAsync("/api/tvshows", createDto);
 
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
@@ -152,6 +153,9 @@ namespace TvShowTracker.Tests.Integration.Controllers
         public async Task SearchTvShows_ShouldReturnMatchingShows()
         {
             await SeedTestDataAsync();
+
+            var token = await GetAuthTokenAsync();
+            _client.SetBearerToken(token);
 
             var response = await _client.GetAsync("/api/tvshows/search?query=Test");
 
@@ -171,6 +175,7 @@ namespace TvShowTracker.Tests.Integration.Controllers
         /// </summary>
         private async Task SeedTestDataAsync()
         {
+
             using var context = _factory.GetDbContext();
 
             context.TvShows.RemoveRange(context.TvShows);
@@ -219,6 +224,7 @@ namespace TvShowTracker.Tests.Integration.Controllers
         /// </summary>
         private async Task<string> GetAuthTokenAsync()
         {
+
             var registerDto = new RegisterDto
             {
                 Username = $"testuser{Random.Shared.Next(1000, 9999)}",
@@ -227,18 +233,15 @@ namespace TvShowTracker.Tests.Integration.Controllers
                 ConfirmPassword = "Password123!"
             };
 
-            var json = JsonSerializer.Serialize(registerDto);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _client.PostAsync("/api/auth/register", content);
-            var responseContent = await response.Content.ReadAsStringAsync();
+            var response = await _client.PostAsJsonAsync("/api/auth/register", registerDto);
 
             if (!response.IsSuccessStatusCode)
-                throw new Exception($"Auth failed: {response.StatusCode} - {responseContent}");
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Auth failed: {response.StatusCode} - {errorContent}");
+            }
 
-            var authResponse = JsonSerializer.Deserialize<AuthResponseDto>(responseContent,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
+            var authResponse = await response.Content.ReadAsJsonAsync<AuthResponseDto>();
             return authResponse.Token;
         }
     }

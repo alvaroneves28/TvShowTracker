@@ -35,6 +35,7 @@ namespace TvShowTracker.Tests.Controllers
         [Fact]
         public async Task GetTvShows_ShouldReturnOkResult()
         {
+            
             // Arrange
             var parameters = new QueryParameters();
             var pagedResult = new PagedResultDto<TvShowDto>(
